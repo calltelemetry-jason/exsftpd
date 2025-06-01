@@ -37,9 +37,20 @@ defmodule Exsftpd.SftpFileHandler do
   end
 
   defp get_file_info(io_device) do
-    # OTP 26 removed :file.pid2name/1, so we just return the io_device
-    # The filename tracking is now handled differently in the open/3 function
-    {io_device}
+    # Check if :file.pid2name/1 exists (pre-OTP 26)
+    if Kernel.function_exported?(:file, :pid2name, 1) do
+      case :file.pid2name(io_device) do
+        {:ok, filename} -> {io_device, filename}
+        _ -> {io_device}
+      end
+    else
+      # OTP 26+ removed :file.pid2name/1
+      # Use our own implementation
+      case pid2name(io_device) do
+        {:ok, filename} -> {io_device, filename}
+        _ -> {io_device}
+      end
+    end
   end
 
   def close(io_device, state) do
