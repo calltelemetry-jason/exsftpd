@@ -24,3 +24,6 @@ exsftpd-*.tar
 
 *.swp
 .elixir_ls
+.idea
+exsftpd.iml
+.tool-versions
