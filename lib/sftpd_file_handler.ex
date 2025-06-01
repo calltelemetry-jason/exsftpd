@@ -16,41 +16,11 @@ defmodule Exsftpd.SftpFileHandler do
     result
   end
 
-  defp pid2name(io_device) when is_pid(io_device) do
-    # This function has code ported from the deprecated Erlang function :file.pid2name.
-
-    ref = Process.monitor(io_device)
-
-    send(io_device, {:file_request, self(), ref, :pid2name})
-
-    receive do
-      {:file_reply, ref, reply} ->
-        Process.demonitor(ref, [:flush])
-        reply
-
-      {"DOWN", _ref, _, _, _} ->
-        {:error, :terminated}
-    after
-      500 ->
-        {:error, :timeout}
-    end
-  end
 
   defp get_file_info(io_device) do
-    # Check if :file.pid2name/1 exists (pre-OTP 26)
-    if Kernel.function_exported?(:file, :pid2name, 1) do
-      case :file.pid2name(io_device) do
-        {:ok, filename} -> {io_device, filename}
-        _ -> {io_device}
-      end
-    else
-      # OTP 26+ removed :file.pid2name/1
-      # Use our own implementation
-      case pid2name(io_device) do
-        {:ok, filename} -> {io_device, filename}
-        _ -> {io_device}
-      end
-    end
+    # Since we can't reliably get filenames from PIDs across all OTP versions,
+    # we just return the io_device. The filename tracking is handled in open/3
+    {io_device}
   end
 
   def close(io_device, state) do
