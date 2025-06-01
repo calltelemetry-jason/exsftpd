@@ -37,10 +37,9 @@ defmodule Exsftpd.SftpFileHandler do
   end
 
   defp get_file_info(io_device) do
-    case pid2name(io_device) do
-      {:ok, filename} -> {io_device, filename}
-      _ -> {io_device}
-    end
+    # OTP 26 removed :file.pid2name/1, so we just return the io_device
+    # The filename tracking is now handled differently in the open/3 function
+    {io_device}
   end
 
   def close(io_device, state) do
@@ -82,7 +81,8 @@ defmodule Exsftpd.SftpFileHandler do
   def open(path, flags, state) do
     {case :file.open(user_path(path, state), flags) do
        {:ok, pid} ->
-         on_event({:open, {get_file_info(pid), path, flags}}, state)
+         # Since we can't get filename from pid in OTP 26, we pass the path directly
+         on_event({:open, {{pid}, path, flags}}, state)
          {:ok, pid}
 
        other ->

@@ -27,7 +27,8 @@ config :exsftpd, Exsftpd.Server,
   user_auth_dir: "/tmp/users",
   system_dir: "test/keys",
   authenticate: {Exsftpd.Authenticator, :accept_all},
-  event_handler: {Exsftpd.Events, :log_event}
+  event_handler: {Exsftpd.Events, :log_event},
+  modify_algorithms: []
 
 # event_handler: fn(event) -> IO.puts("Event: #{inspect event} ") end
 
